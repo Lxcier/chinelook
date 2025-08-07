@@ -10,6 +10,7 @@ const LoraFont = Lora({
 const PlayballFont = Playball({
   variable: "--font-playball",
   weight: "400",
+  subsets: ["latin"],
 });
 
 const QuicksandFont = Quicksand({
