@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import ProductCard from "./ProductCard";
 import { ProductCarouselProps } from "@/lib/types";
@@ -16,6 +16,10 @@ export default function ProductCarousel({
   const isDragging = useRef(false);
   const startX = useRef(0);
   const scrollLeft = useRef(0);
+  const velocity = useRef(0);
+  const lastMoveX = useRef(0);
+  const lastTime = useRef(0);
+  const momentumId = useRef<NodeJS.Timeout | null>(null);
 
   const scroll = (direction: "left" | "right") => {
     if (scrollRef.current) {
@@ -27,43 +31,99 @@ export default function ProductCarousel({
     }
   };
 
+  const stopMomentum = () => {
+    if (momentumId.current) {
+      clearInterval(momentumId.current);
+      momentumId.current = null;
+    }
+  };
+
+  const applyMomentum = () => {
+    if (!scrollRef.current) return;
+
+    let currentVelocity = velocity.current;
+
+    stopMomentum();
+
+    momentumId.current = setInterval(() => {
+      if (Math.abs(currentVelocity) < 0.5) {
+        stopMomentum();
+        return;
+      }
+
+      scrollRef.current!.scrollLeft -= currentVelocity;
+      currentVelocity *= 0.95; // Diminui gradualmente a velocidade
+    }, 16); // aproximadamente 60fps
+  };
+
   const handleMouseDown = (e: React.MouseEvent) => {
+    stopMomentum();
     isDragging.current = true;
-    startX.current = e.pageX - (scrollRef.current?.offsetLeft || 0);
+    startX.current = e.pageX;
     scrollLeft.current = scrollRef.current?.scrollLeft || 0;
-  };
-
-  const handleMouseLeave = () => {
-    isDragging.current = false;
-  };
-
-  const handleMouseUp = () => {
-    isDragging.current = false;
+    lastMoveX.current = e.pageX;
+    lastTime.current = Date.now();
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!isDragging.current || !scrollRef.current) return;
     e.preventDefault();
-    const x = e.pageX - scrollRef.current.offsetLeft;
-    const walk = (x - startX.current) * 1.2; // Ajuste a "velocidade" do scroll
-    scrollRef.current.scrollLeft = scrollLeft.current - walk;
+
+    const currentX = e.pageX;
+    const delta = currentX - startX.current;
+    scrollRef.current.scrollLeft = scrollLeft.current - delta;
+
+    const now = Date.now();
+    const dx = currentX - lastMoveX.current;
+    const dt = now - lastTime.current;
+
+    velocity.current = (dx / dt) * 16; // velocity ajustada pra 60fps
+
+    lastMoveX.current = currentX;
+    lastTime.current = now;
+  };
+
+  const handleMouseUp = () => {
+    isDragging.current = false;
+    applyMomentum();
+  };
+
+  const handleMouseLeave = () => {
+    if (isDragging.current) {
+      isDragging.current = false;
+      applyMomentum();
+    }
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
+    stopMomentum();
     isDragging.current = true;
-    startX.current = e.touches[0].pageX - (scrollRef.current?.offsetLeft || 0);
+    const x = e.touches[0].pageX;
+    startX.current = x;
     scrollLeft.current = scrollRef.current?.scrollLeft || 0;
+    lastMoveX.current = x;
+    lastTime.current = Date.now();
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!isDragging.current || !scrollRef.current) return;
-    const x = e.touches[0].pageX - scrollRef.current.offsetLeft;
-    const walk = (x - startX.current) * 2;
-    scrollRef.current.scrollLeft = scrollLeft.current - walk;
+
+    const currentX = e.touches[0].pageX;
+    const delta = currentX - startX.current;
+    scrollRef.current.scrollLeft = scrollLeft.current - delta;
+
+    const now = Date.now();
+    const dx = currentX - lastMoveX.current;
+    const dt = now - lastTime.current;
+
+    velocity.current = (dx / dt) * 16;
+    lastMoveX.current = currentX;
+    lastTime.current = now;
   };
 
   const handleTouchEnd = () => {
     isDragging.current = false;
+    applyMomentum();
   };
 
   return (
@@ -99,11 +159,11 @@ export default function ProductCarousel({
 
         <div
           ref={scrollRef}
-          className="flex gap-4 overflow-x-auto scroll-smooth hide-scrollbar pr-4 cursor-grab active:cursor-grabbing select-none "
+          className="flex gap-4 overflow-x-auto scroll-smooth hide-scrollbar pr-4 cursor-grab active:cursor-grabbing select-none"
           onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseLeave}
-          onMouseMove={handleMouseMove}
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
