@@ -12,11 +12,13 @@ export default function HomePage() {
       <HeroSection />
       <FeaturedProducts />
       <CategoriesSection />
-      <ProductCarousel
-        products={products}
-        title="Novidades para brilhar"
-        subtitle=" Acabaram de chegar na Chinelook"
-      />
+      <div className="wrapper">
+        <ProductCarousel
+          products={products}
+          title="Novidades para brilhar"
+          subtitle=" Acabaram de chegar na Chinelook"
+        />
+      </div>
       <HandmadeSection />
     </>
   );

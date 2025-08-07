@@ -13,7 +13,7 @@ export default function HeroSection() {
     >
       <div className="absolute inset-0 bg-black opacity-50 z-0" />
 
-      <div className="relative z-10 max-w-2xl text-center sm:text-left text-white left-0">
+      <div className="relative z-10 max-w-2xl text-center sm:text-left text-white left-0 wrapper">
         <p className="font-playball text-xl sm:text-2xl mb-2">
           Chine<span className="text-[#EBC0B3]">look</span> – Brilhando a cada
           passo

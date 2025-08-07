@@ -44,4 +44,11 @@ export const products: Product[] = [
     price: 74.9,
     imageUrl: "/images/products/modelo2.jpg",
   },
+  {
+    id: "7",
+    name: "Chinelo Estilo Casa",
+    description: "Para brilhar até na areia.",
+    price: 74.9,
+    imageUrl: "/images/products/modelo2.jpg",
+  },
 ];

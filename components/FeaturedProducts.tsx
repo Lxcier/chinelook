@@ -6,7 +6,7 @@ import ProductCarousel from "./ProductsCarousel";
 export default function FeaturedProducts() {
   return (
     <section className="py-12 bg-[#fdf8f5]">
-      <div className="w-full mx-auto">
+      <div className="wrapper">
         <ProductCarousel
           products={products}
           title="Destaques que encantam"
